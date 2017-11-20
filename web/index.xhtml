@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <f:view xmlns="http://www.w3.org/1999/xhtml"
+            xmlns:f="http://java.sun.com/jsf/core"
+            xmlns:h="http://java.sun.com/jsf/html"
+            xmlns:p="http://primefaces.org/ui"
+            xmlns:pm="http://primefaces.org/mobile"
+            contentType="text/html">
+        <pm:page title="GPM - v0.1">
+
+            <pm:view id="main">
+                <pm:header title="GPM - v0.1" fixed="true">
+                    <f:facet name="right">
+                        <p:button value="Sobre" icon="info" href="#about" />
+                    </f:facet>
+                </pm:header>
+                <pm:content>
+                    <p:dataList>
+                        <p:commandLink action="#{clienteController.listarClientes()}" update=":listaClientes">Lista de Clientes</p:commandLink>
+                    </p:dataList>
+                </pm:content>
+                <pm:footer fixed="true">
+                    <p>GPM - Gerador de Pedidos Móveis - v0.1</p>
+                </pm:footer>
+            </pm:view>
+
+            <pm:view id="about">
+                <pm:header title="Sobre" fixed="true">
+                    <f:facet name="left">
+                        <p:button value="Voltar" icon="back" href="#main" />
+                    </f:facet>
+                </pm:header>
+                <pm:content>
+                    <h2>Armazem Armarinho</h2>
+                    <p>Rua das Perdizes, nº 123, Centro</p>
+                </pm:content>
+                <pm:footer fixed="true">
+                    <p>GPM - Gerador de Pedidos Móveis - v0.1</p>
+                </pm:footer>
+            </pm:view>
+
+            <pm:view id="listaClientes">
+                <pm:header title="Clientes" fixed="true">
+                    <f:facet name="left">
+                        <p:button value="Voltar" icon="back" href="#main" />
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton value="Novo Cliente" icon="edit" action="#{clienteController.novoCliente()}" update=":clienteForm" />
+                    </f:facet>
+                </pm:header>
+                <pm:content>
+                    <h:form>
+                        <p:dataList value="#{clienteController.listaClientes}" var="cliente">
+                            <p:commandLink action="#{clienteController.selecionaCliente(cliente.documento)}" update=":clienteForm">
+                                <h2>#{cliente.nome}</h2>
+                                <p>#{cliente.documento}</p>
+                                <p>#{cliente.endereco}</p>
+                            </p:commandLink> 
+                        </p:dataList>
+                    </h:form>
+                </pm:content>
+            </pm:view>
+
+            <pm:view id="cliente">
+                <pm:header title="Cliente" fixed="true">
+                    <f:facet name="left">
+                        <p:button value="Voltar" icon="back" href="#listaClientes" />
+                    </f:facet>
+                </pm:header>
+                <pm:content>
+                    <h:form id="clienteForm">
+                        <p:growl id="message" />
+                        <p:outputPanel id="content" layout="block">
+                            <p:inputText value="#{clienteController.cliente.documento}" label="Documento:" />
+                            <p:inputText value="#{clienteController.cliente.nome}" label="Nome:" />
+                            <p:inputTextarea value="#{clienteController.cliente.endereco}" label="Endereco:" />
+                        </p:outputPanel>
+                        <p:commandButton value="Salvar Cliente" action="#{clienteController.salvaCliente()}" update=":clienteForm"/>
+                        <p:commandButton value="Lista Pedidos" action="#{pedidoController.listarPedidos(clienteController.cliente)}" update=":listaPedidos" rendered="#{clienteController.cliente.documento != null}"/>
+                        <p:commandButton value="Novo Pedido" action="#{pedidoController.novoPedido(clienteController.cliente)}" update=":pedidoForm" rendered="#{clienteController.cliente.documento != null}"/>
+                    </h:form>
+                </pm:content>
+            </pm:view>
+
+            <pm:view id="listaPedidos">
+                <pm:header title="Lista Pedidos" fixed="true">
+                    <f:facet name="left">
+                        <p:button value="Voltar" icon="back" href="#cliente" />
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton value="Novo Pedido" icon="edit" action="#{pedidoController.novoPedido(pedidoController.cliente)}" update=":pedidoForm"/>
+                    </f:facet>
+                </pm:header>
+                <pm:content>
+                    <h:form>
+                        <p:outputPanel id="content" layout="block">
+                            <h3>#{pedidoController.cliente.nome} - #{pedidoController.cliente.documento}</h3>
+                            <p:dataList value="#{pedidoController.listaPedidos}" var="pedido">
+                                <p:commandLink action="#{pedidoController.abrePedido(pedido.numero)}" update=":pedidoForm">
+                                    <h2>Número: #{pedido.numero}</h2>
+                                    <p>Status: #{pedido.status}</p>
+                                    <p>Prioridade: #{pedido.prioridade}</p>
+                                    <p>Preço Total: #{pedido.precoTotal}</p>
+                                </p:commandLink> 
+                            </p:dataList>
+                        </p:outputPanel>                        
+                    </h:form>
+                </pm:content>
+            </pm:view>
+
+            <pm:view id="pedido">
+                <pm:header title="Pedido" fixed="true">
+                    <f:facet name="left">
+                        <p:button value="Voltar" icon="back" href="#cliente" />
+                    </f:facet>
+                </pm:header>
+                <pm:content>
+                    <h:form id="pedidoForm">
+                        <p:growl id="message" />
+                        <h3>#{pedidoController.cliente.nome} - #{pedidoController.cliente.documento}</h3>
+                        <p:dataTable var="item" value="#{pedidoController.pedido.itens}">
+                            <p:column headerText="Descrição">
+                                <p:inputText value="#{item.nome}" >
+                                    <p:ajax event="blur" update=":pedidoForm"/>
+                                </p:inputText>
+                            </p:column>
+                            <p:column headerText="Qtd.">
+                                <p:inputText value="#{item.quantidade}" size="2" >
+                                    <p:ajax event="blur" update=":pedidoForm"/>
+                                </p:inputText>
+                            </p:column>
+                            <p:column headerText="$ Uni">
+                                <p:inputText value="#{item.precoUnitario}" size="8" >
+                                    <p:ajax event="blur" update=":pedidoForm"/>
+                                </p:inputText>
+                            </p:column>
+                            <p:column headerText="$ Item">
+                                <p:inputText value="#{item.precoItem}" size="8" readonly="true" />
+                            </p:column>
+                            <p:column headerText="[x]">
+                                <p:selectBooleanCheckbox value="#{item.selecionado}" />
+                            </p:column>
+                        </p:dataTable>
+                        <pm:buttonGroup orientation="horizontal">
+                            <p:commandButton value="Novo Item" action="#{pedidoController.novoItem()}" update=":pedidoForm" />
+                            <p:commandButton value="Exclui Selecionados" action="#{pedidoController.excluiItensSelecionados()}" update=":pedidoForm" />
+                        </pm:buttonGroup>
+                        <p:inputText value="#{pedidoController.pedido.precoTotal}" label="Preço total:" readonly="true" />
+                        <pm:inputRange value="#{pedidoController.pedido.prioridade}" label="Prioridade:" minValue="1" maxValue="5" />
+                        <pm:switch value="#{pedidoController.fechaPedido}" onLabel="Fechado" offLabel="Aberto" label="Status Pedido:"/>
+                        <p:commandButton value="Concluir Pedido" action="#{pedidoController.concluiPedido()}" update=":pedidoForm"/>
+                    </h:form>
+                </pm:content>
+            </pm:view>
+        </pm:page>
+    </f:view>
+</html>
